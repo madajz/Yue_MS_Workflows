@@ -6,11 +6,12 @@ date: "`r Sys.Date()`"
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,warnings=F,error = F)
 
 library(ggplot2)
 library(ggforce)
 library(limma)
+library(dplyr)
 library(ggrepel)
 library(imputeLCMD)
 library(ggsci)
@@ -19,7 +20,7 @@ library(emmeans)
 library(patchwork)
 library(pheatmap)
 library(brglm2)
-
+library(readxl)
 
 ```
 
@@ -32,6 +33,12 @@ library(brglm2)
 
 ## Please select the path to the data file you want to analyze
 data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/20240118_MC00470_profiling_StriatumLipids/3_tables/MC00470_Merged_PoolSize.csv",header=T)
+
+## Update the file path for the Excel file with Sex info, this will need to  be merged into these files since the MS files don't seem to have sex info
+meta = subset(readxl::read_excel("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/sample submittion_20231030_Banana_HFD aged.xlsx",sheet=3,skip=1),select=c('Core ID','Condition 3'))
+colnames(meta) = c("ID","Sex")
+meta$ID = paste0("S",meta$ID)
+meta$Sex = toupper(meta$Sex)
 colnames(data)[1] = "Sample"
 
 # This line makes all of the compound variables numeric, sometimes they read in as characters
@@ -61,8 +68,12 @@ Molecule = colnames(data)[2:ncol(data)]
 data$Geno_Diet =  sapply(strsplit(data$Sample,"_"), function(x) x[2])
 data$Geno = gsub("-.*","",data$Geno_Diet)
 data$Diet = gsub(".*-","",data$Geno_Diet)
+data$ID = gsub("_.*","",data$Sample)
 
-table(data$Geno,data$Diet)
+data = left_join(data,meta,by="ID")
+
+
+table(data$Geno,data$Diet,data$Sex)
 
 data = subset(data, select= - c(Geno_Diet))
 
@@ -88,7 +99,7 @@ miss.df[!is.na(miss.df)] = 1
 miss.df[is.na(miss.df)] = 0
 
 missing = apply(miss.df,2, function(x) sum(x)/length(x))
-anno = data.frame(Genotype = data$Geno,Diet = data$Diet)
+anno = data.frame(Genotype = data$Geno,Diet = data$Diet,Sex=data$Sex)
 rownames(anno) = rownames(miss.df)
 
 if( length(which(missing<0.95)) > 0){
@@ -101,10 +112,13 @@ if( length(which(missing<0.95)) > 0){
 
 ### Testing for specificity
 
+There are not enough samples to really startify by sex and test for specificty, so this analysis only adjusts for sex
+
 ```{r, include=F}
 
 miss.df$Geno = data$Geno
 miss.df$Diet = data$Diet
+miss.df$Sex = data$Sex
 colnames(miss.df) = make.names(colnames(miss.df))
 res.diet=NULL
 res.geno=NULL
@@ -185,19 +199,19 @@ pc.plot = function(df){
 
   p1 = ggplot(pc.df,aes(x=PC1,y=PC2,color = Diet,shape=Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
   p2 = ggplot(pc.df,aes(x=PC3,y=PC4,color = Diet,shape=Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
   p3 = ggplot(pc.df,aes(x=PC5,y=PC6,color = Diet,shape=Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
@@ -205,16 +219,24 @@ pc.plot = function(df){
 
 }
 
-pc.plot(data)
+pc.plot(data) +  plot_annotation('Pooled Sexes',theme=theme(plot.title=element_text(hjust=0.5)))
+
+
+pc.plot(data[toupper(data$Sex) == "M",]) +  plot_annotation('Males Only',theme=theme(plot.title=element_text(hjust=0.5)))
+
+pc.plot(data[toupper(data$Sex) == "F",]) +  plot_annotation('Females Only',theme=theme(plot.title=element_text(hjust=0.5)))
 
 ```
 
 
-### Heatmap
+
+### Heatmap {.tabset}
+
+#### Pooled
 
 ```{r, fig.width=9,fig.height=25}
 
-anno = data.frame(Genotype = data$Geno,Diet = data$Diet)
+anno = data.frame(Genotype = data$Geno, data$Diet,Sex = data$Sex)
 rownames(anno) = data$Sample
 rownames(data) = data$Sample
 pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
@@ -223,17 +245,54 @@ pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
          color=colorRampPalette(c("blue","white","red"))(100))
 
 
+```
+
+
+#### Males Only
+
+```{r, fig.width=9,fig.height=25}
+
+anno = data.frame(Genotype = data[data$Sex == "M",]$Geno,Diet = data[data$Sex == "M",]$Diet)
+rownames(anno) = data[data$Sex == "M",]$Sample
+
+pheatmap(t(log2(data[data$Sex == "M",colnames(data) %in% Molecule])),
+         annotation_col = anno,
+         scale="row",
+         color=colorRampPalette(c("blue","white","red"))(100))
+
+
 
 ```
 
+
+
+#### Females Only
+
+```{r, fig.width=9,fig.height=25}
+
+anno = data.frame(Genotype = data[data$Sex == "F",]$Geno,Diet = data[data$Sex == "F",]$Diet)
+rownames(anno) = data[data$Sex == "F",]$Sample
+
+pheatmap(t(log2(data[data$Sex == "F",colnames(data) %in% Molecule])),
+         annotation_col = anno,
+         scale="row",
+         color=colorRampPalette(c("blue","white","red"))(100))
+
+
+
+```
+
+
 ## Differntial Abundance {.tabset}
+
+### Pooled {.tabset}
 
 ```{r, fig.height=14,fig.width=14}
 
 
 data$Geno_Diet = paste0(data$Geno,data$Diet)
 
-design = model.matrix(~ 0 + Geno_Diet, data= data)
+design = model.matrix(~ 0 + Geno_Diet + Sex, data= data)
 
 
 fit <- lmFit(t(data[,colnames(data) %in% Molecule]), design, robust = TRUE)
@@ -255,7 +314,7 @@ tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 ```
 
-### HFD KI - WT
+#### HFD KI - WT
 
 ```{r, fig.height=9,fig.width=9}
 
@@ -273,7 +332,7 @@ knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 ```
 
 
-### LFD KI - WT
+#### LFD KI - WT
 
 ```{r, fig.height=9,fig.width=9}
 
@@ -292,7 +351,7 @@ knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 
-### (HFD KI - WT) - (LFD KI - WT)
+#### (HFD KI - WT) - (LFD KI - WT)
 
 ```{r, fig.height=9,fig.width=9}
 
@@ -310,7 +369,7 @@ knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 ```
 
 
-### Boxplots Top Compounds
+#### Boxplots Top Compounds
 
 ```{r, fig.height=12,fig.width=16}
 
@@ -325,3 +384,195 @@ ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = posit
 
 ```
 
+
+### Males {.tabset}
+
+```{r, fig.height=14,fig.width=14}
+
+design = model.matrix(~ 0 + Geno_Diet , data= data[data$Sex == "M", ])
+
+
+fit <- lmFit(t(data[data$Sex == "M",colnames(data) %in% Molecule]), design, robust = TRUE)
+
+cont2 = makeContrasts( Geno_DietkiHFD - Geno_DietwtHFD ,
+                       Geno_DietkiLFD- Geno_DietwtLFD,
+                       
+                       (Geno_DietkiHFD - Geno_DietwtHFD) -
+                         (Geno_DietkiLFD- Geno_DietwtLFD),
+                       levels = design)
+
+set.seed(777)
+fit.cont <- contrasts.fit(fit, contrasts = cont2) 
+
+set.seed(777)
+ebayesf <- eBayes(fit.cont, robust = T, trend = T)
+
+tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
+tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
+```
+
+#### HFD KI - WT
+
+```{r, fig.height=9,fig.width=9}
+
+hfd.df = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+hfd.df$Compound = rownames(hfd.df)
+hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
+hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+
+ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+
+knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+#### LFD KI - WT
+
+```{r, fig.height=9,fig.width=9}
+
+lfd.df = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+lfd.df$Compound = rownames(lfd.df)
+lfd.df$Significant = ifelse(lfd.df$adj.P.Val<0.05,"Significant","NS")
+lfd.df$label = ifelse(lfd.df$Significant == "NS","",lfd.df$Compound)
+
+ggplot(lfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df[lfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
+
+knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+
+#### (HFD KI - WT) - (LFD KI - WT)
+
+```{r, fig.height=9,fig.width=9}
+
+hfd.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+hfd.df$Compound = rownames(hfd.df)
+hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
+hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+
+ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
+
+knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+#### Boxplots Top Compounds
+
+```{r, fig.height=12,fig.width=16}
+
+
+plot.df = reshape2::melt(data[data$Sex == "M",colnames(data) %in% c("Geno","Diet",rownames(tops.all)[1:20])],id.vars=c("Geno","Diet"))
+title = "Boxplots of Compounds with largest differences"
+
+
+
+ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = position_dodge()) +
+  facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title)
+
+```
+
+### Females {.tabset}
+
+```{r, fig.height=14,fig.width=14}
+
+design = model.matrix(~ 0 + Geno_Diet , data= data[data$Sex == "F", ])
+
+
+fit <- lmFit(t(data[data$Sex == "F",colnames(data) %in% Molecule]), design, robust = TRUE)
+
+cont2 = makeContrasts( Geno_DietkiHFD - Geno_DietwtHFD ,
+                       Geno_DietkiLFD- Geno_DietwtLFD,
+                       
+                       (Geno_DietkiHFD - Geno_DietwtHFD) -
+                         (Geno_DietkiLFD- Geno_DietwtLFD),
+                       levels = design)
+
+set.seed(777)
+fit.cont <- contrasts.fit(fit, contrasts = cont2) 
+
+set.seed(777)
+ebayesf <- eBayes(fit.cont, robust = T, trend = T)
+
+tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
+tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
+```
+
+#### HFD KI - WT
+
+```{r, fig.height=9,fig.width=9}
+
+hfd.df = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+hfd.df$Compound = rownames(hfd.df)
+hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
+hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+
+ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+
+knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+#### LFD KI - WT
+
+```{r, fig.height=9,fig.width=9}
+
+lfd.df = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+lfd.df$Compound = rownames(lfd.df)
+lfd.df$Significant = ifelse(lfd.df$adj.P.Val<0.05,"Significant","NS")
+lfd.df$label = ifelse(lfd.df$Significant == "NS","",lfd.df$Compound)
+
+ggplot(lfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df[lfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
+
+knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+
+#### (HFD KI - WT) - (LFD KI - WT)
+
+```{r, fig.height=9,fig.width=9}
+
+hfd.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+hfd.df$Compound = rownames(hfd.df)
+hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
+hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+
+ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
+
+knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+
+
+```
+
+
+#### Boxplots Top Compounds
+
+```{r, fig.height=12,fig.width=16}
+
+
+plot.df = reshape2::melt(data[data$Sex == "F",colnames(data) %in% c("Geno","Diet",rownames(tops.all)[1:20])],id.vars=c("Geno","Diet"))
+title = "Boxplots of Compounds with largest differences"
+
+
+
+ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = position_dodge()) +
+  facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title)
+
+```

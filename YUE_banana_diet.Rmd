@@ -6,7 +6,7 @@ date: "`r Sys.Date()`"
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,warnings=F,error = F)
 
 library(ggplot2)
 library(ggforce)
@@ -179,19 +179,19 @@ pc.plot = function(df){
 
   p1 = ggplot(pc.df,aes(x=PC1,y=PC2,color = Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
   p2 = ggplot(pc.df,aes(x=PC3,y=PC4,color =Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
   p3 = ggplot(pc.df,aes(x=PC5,y=PC6,color=Genotype, linetype=Genotype )) +
     geom_point() +
-    stat_ellipse() +
+    geom_mark_ellipse() +
     theme_bw(12) +
     scale_color_nejm()
 
