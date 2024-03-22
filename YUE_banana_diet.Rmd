@@ -318,7 +318,7 @@ f.df$label = ifelse(f.df$Significant == "NS","",f.df$Compound)
 ggplot(f.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = f.df[f.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(f.df[f.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(f.df[f.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -342,7 +342,7 @@ m.df$label = ifelse(m.df$Significant == "NS","",m.df$Compound)
 ggplot(m.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = m.df[m.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(m.df[m.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(m.df[m.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -409,7 +409,7 @@ pool.df$label = ifelse(pool.df$Significant == "NS","",pool.df$Compound)
 ggplot(pool.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = pool.df[pool.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(pool.df[pool.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(pool.df[pool.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 

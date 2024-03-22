@@ -326,7 +326,7 @@ hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
 ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(hfd.df[hfd.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -344,7 +344,7 @@ lfd.df$label = ifelse(lfd.df$Significant == "NS","",lfd.df$Compound)
 ggplot(lfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df[lfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
 
-knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(lfd.df[lfd.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -363,7 +363,7 @@ delta.delta.hfd$label = ifelse(delta.delta.hfd$Significant == "NS","",delta.delt
 ggplot(delta.delta.hfd,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = delta.delta.hfd[delta.delta.hfd$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(delta.delta.hfd[delta.delta.hfd$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(delta.delta.hfd[delta.delta.hfd$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -423,7 +423,7 @@ hfd.df.m$label = ifelse(hfd.df.m$Significant == "NS","",hfd.df.m$Compound)
 ggplot(hfd.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df.m[hfd.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(hfd.df.m[hfd.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(hfd.df.m[hfd.df.m$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -441,7 +441,7 @@ lfd.df.m$label = ifelse(lfd.df.m$Significant == "NS","",lfd.df.m$Compound)
 ggplot(lfd.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df.m[lfd.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
 
-knitr::kable(lfd.df.m[lfd.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(lfd.df.m[lfd.df.m$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -460,7 +460,7 @@ detla.delta.df.m$label = ifelse(detla.delta.df.m$Significant == "NS","",detla.de
 ggplot(detla.delta.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = detla.delta.df.m[detla.delta.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(detla.delta.df.m[detla.delta.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(detla.delta.df.m[detla.delta.df.m$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -518,7 +518,7 @@ hfd.df.f$label = ifelse(hfd.df.f$Significant == "NS","",hfd.df.f$Compound)
 ggplot(hfd.df.f,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df.f[hfd.df.f$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(hfd.df.f[hfd.df.f$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(hfd.df.f[hfd.df.f$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -536,7 +536,7 @@ ldf.df.f$label = ifelse(ldf.df.f$Significant == "NS","",ldf.df.f$Compound)
 ggplot(ldf.df.f,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = ldf.df.f[ldf.df.f$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
 
-knitr::kable(ldf.df.f[ldf.df.f$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(ldf.df.f[ldf.df.f$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -555,7 +555,7 @@ delta.delta.df$label = ifelse(delta.delta.df$Significant == "NS","",delta.delta.
 ggplot(delta.delta.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
   theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = delta.delta.df[delta.delta.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(delta.delta.df[delta.delta.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(delta.delta.df[delta.delta.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
