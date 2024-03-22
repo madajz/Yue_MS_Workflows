@@ -395,21 +395,21 @@ ebayesf <- eBayes(fit.cont, robust = T, trend = T)
 tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
-m.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
+pool.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
                data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
                data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
                )
 
 
 
-m.df$Compound = rownames(m.df)
-m.df$Significant = ifelse(m.df$adj.P.Val<0.05,"Significant","NS")
-m.df$label = ifelse(m.df$Significant == "NS","",m.df$Compound)
+pool.df$Compound = rownames(pool.df)
+pool.df$Significant = ifelse(pool.df$adj.P.Val<0.05,"Significant","NS")
+pool.df$label = ifelse(pool.df$Significant == "NS","",pool.df$Compound)
 
-ggplot(m.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = m.df[m.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+ggplot(pool.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = pool.df[pool.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(m.df[m.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(pool.df[pool.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 
@@ -424,7 +424,6 @@ knitr::kable(m.df[m.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
   plot.df = reshape2::melt(data[,colnames(data) %in% c("Geno","Sex",rownames(tops.all)[1:20])],id.vars=c("Geno","Sex"))
   title = "Boxplots of Compounds with largest differences"
-
 
 
 ggplot( plot.df,aes(x = Geno,y=value)) +geom_boxplot(position = position_dodge()) +
