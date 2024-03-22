@@ -314,7 +314,7 @@ tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 ```
 
-#### HFD KI - WT
+#### HFD KI - HFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
@@ -332,7 +332,7 @@ knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 ```
 
 
-#### LFD KI - WT
+#### LFD KI - HFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
@@ -351,19 +351,19 @@ knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 
-#### (HFD KI - WT) - (LFD KI - WT)
+####  [KI HFD vs. LFD] vs. [WT HFD vs. LFD]
 
 ```{r, fig.height=9,fig.width=9}
 
-hfd.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
-hfd.df$Compound = rownames(hfd.df)
-hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
-hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+delta.delta.hfd = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+delta.delta.hfd$Compound = rownames(delta.delta.hfd)
+delta.delta.hfd$Significant = ifelse(delta.delta.hfd$adj.P.Val<0.05,"Significant","NS")
+delta.delta.hfd$label = ifelse(delta.delta.hfd$Significant == "NS","",delta.delta.hfd$Compound)
 
-ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
+ggplot(delta.delta.hfd,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = delta.delta.hfd[delta.delta.hfd$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(delta.delta.hfd[delta.delta.hfd$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
@@ -411,56 +411,56 @@ tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 ```
 
-#### HFD KI - WT
+#### HFD KI - HFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
-hfd.df = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
-hfd.df$Compound = rownames(hfd.df)
-hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
-hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+hfd.df.m = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+hfd.df.m$Compound = rownames(hfd.df.m)
+hfd.df.m$Significant = ifelse(hfd.df.m$adj.P.Val<0.05,"Significant","NS")
+hfd.df.m$label = ifelse(hfd.df.m$Significant == "NS","",hfd.df.m$Compound)
 
-ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+ggplot(hfd.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df.m[hfd.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(hfd.df.m[hfd.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
 
 
-#### LFD KI - WT
+#### LFD KI - LFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
-lfd.df = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
-lfd.df$Compound = rownames(lfd.df)
-lfd.df$Significant = ifelse(lfd.df$adj.P.Val<0.05,"Significant","NS")
-lfd.df$label = ifelse(lfd.df$Significant == "NS","",lfd.df$Compound)
+lfd.df.m = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+lfd.df.m$Compound = rownames(lfd.df.m)
+lfd.df.m$Significant = ifelse(lfd.df.m$adj.P.Val<0.05,"Significant","NS")
+lfd.df.m$label = ifelse(lfd.df.m$Significant == "NS","",lfd.df.m$Compound)
 
-ggplot(lfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df[lfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
+ggplot(lfd.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df.m[lfd.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
 
-knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(lfd.df.m[lfd.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
 
 
 
-#### (HFD KI - WT) - (LFD KI - WT)
+####  [KI HFD vs. LFD] vs. [WT HFD vs. LFD]
 
 ```{r, fig.height=9,fig.width=9}
 
-hfd.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
-hfd.df$Compound = rownames(hfd.df)
-hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
-hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+detla.delta.df.m = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+detla.delta.df.m$Compound = rownames(detla.delta.df.m)
+detla.delta.df.m$Significant = ifelse(detla.delta.df.m$adj.P.Val<0.05,"Significant","NS")
+detla.delta.df.m$label = ifelse(detla.delta.df.m$Significant == "NS","",detla.delta.df.m$Compound)
 
-ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
+ggplot(detla.delta.df.m,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = detla.delta.df.m[detla.delta.df.m$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(detla.delta.df.m[detla.delta.df.m$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
@@ -473,7 +473,6 @@ knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 plot.df = reshape2::melt(data[data$Sex == "M",colnames(data) %in% c("Geno","Diet",rownames(tops.all)[1:20])],id.vars=c("Geno","Diet"))
 title = "Boxplots of Compounds with largest differences"
-
 
 
 ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = position_dodge()) +
@@ -507,56 +506,56 @@ tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 ```
 
-#### HFD KI - WT
+#### HFD KI - HFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
-hfd.df = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
-hfd.df$Compound = rownames(hfd.df)
-hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
-hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+hfd.df.f = data.frame(Contrast = "KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+hfd.df.f$Compound = rownames(hfd.df.f)
+hfd.df.f$Significant = ifelse(hfd.df.f$adj.P.Val<0.05,"Significant","NS")
+hfd.df.f$label = ifelse(hfd.df.f$Significant == "NS","",hfd.df.f$Compound)
 
-ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+ggplot(hfd.df.f,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df.f[hfd.df.f$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(hfd.df.f[hfd.df.f$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
 
 
-#### LFD KI - WT
+#### LFD KI - LFD WT
 
 ```{r, fig.height=9,fig.width=9}
 
-lfd.df = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
-lfd.df$Compound = rownames(lfd.df)
-lfd.df$Significant = ifelse(lfd.df$adj.P.Val<0.05,"Significant","NS")
-lfd.df$label = ifelse(lfd.df$Significant == "NS","",lfd.df$Compound)
+ldf.df.f = data.frame(Contrast = "KI lfd vs WT lfd", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+ldf.df.f$Compound = rownames(ldf.df.f)
+ldf.df.f$Significant = ifelse(ldf.df.f$adj.P.Val<0.05,"Significant","NS")
+ldf.df.f$label = ifelse(ldf.df.f$Significant == "NS","",ldf.df.f$Compound)
 
-ggplot(lfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = lfd.df[lfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
+ggplot(ldf.df.f,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = ldf.df.f[ldf.df.f$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("LFD KI - WT")
 
-knitr::kable(lfd.df[lfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(ldf.df.f[ldf.df.f$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
 
 
 
-#### (HFD KI - WT) - (LFD KI - WT)
+####  [KI HFD vs. LFD] vs. [WT HFD vs. LFD]
 
 ```{r, fig.height=9,fig.width=9}
 
-hfd.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
-hfd.df$Compound = rownames(hfd.df)
-hfd.df$Significant = ifelse(hfd.df$adj.P.Val<0.05,"Significant","NS")
-hfd.df$label = ifelse(hfd.df$Significant == "NS","",hfd.df$Compound)
+delta.delta.df = data.frame(Contrast = "Delta-Delta", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+delta.delta.df$Compound = rownames(delta.delta.df)
+delta.delta.df$Significant = ifelse(delta.delta.df$adj.P.Val<0.05,"Significant","NS")
+delta.delta.df$label = ifelse(delta.delta.df$Significant == "NS","",delta.delta.df$Compound)
 
-ggplot(hfd.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = hfd.df[hfd.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
+ggplot(delta.delta.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = delta.delta.df[delta.delta.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("[HFD: KI - WT] - [LFD: KI - WT]")
 
-knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
+knitr::kable(delta.delta.df[delta.delta.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 
 ```
@@ -569,8 +568,6 @@ knitr::kable(hfd.df[hfd.df$adj.P.Val<0.05,],row.names = F,digits = 4)
 
 plot.df = reshape2::melt(data[data$Sex == "F",colnames(data) %in% c("Geno","Diet",rownames(tops.all)[1:20])],id.vars=c("Geno","Diet"))
 title = "Boxplots of Compounds with largest differences"
-
-
 
 ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = position_dodge()) +
   facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title)
