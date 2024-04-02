@@ -31,7 +31,8 @@ library(brglm2)
 ```{r, include=F}
 
 ## Please select the path to the data file you want to analyze
-data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/Plasma_metabolites/MC00279_merged_checked.csv",header=T)
+data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/liver lipidomics/MC00331_liver_lipidomics.csv",header=T)
+
 colnames(data)[1] = "Sample"
 # This line makes all of the compound variables numeric, sometimes they read in as characters
 data[,2:ncol(data)] <- sapply( data[,2:ncol(data)], as.numeric )
@@ -370,20 +371,16 @@ ggplot( plot.df,aes(x = Geno,y=value,color=Sex)) +geom_boxplot(position = positi
 
 ```{r, fig.height=6,fig.width=14}
 
-
-
-
 data$Geno_Sex = paste0(data$Geno,data$Sex)
 
 design = model.matrix(~ 0 + Geno+Sex, data= data)
 
-
 fit <- lmFit(t(data[,colnames(data) %in% Molecule]), design, robust = TRUE)
+
 
 cont2 = makeContrasts( Genokiki  - Genokiwt ,
                        Genokiki - Genowtwt ,
                        Genokiwt  - Genowtwt,
-                       
                       levels = design)
 
 set.seed(777)
@@ -399,8 +396,6 @@ pool.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.
                data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
                data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
                )
-
-
 
 pool.df$Compound = rownames(pool.df)
 pool.df$Significant = ifelse(pool.df$adj.P.Val<0.05,"Significant","NS")
