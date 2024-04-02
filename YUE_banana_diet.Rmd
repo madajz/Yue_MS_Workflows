@@ -31,7 +31,7 @@ library(brglm2)
 ```{r, include=F}
 
 ## Please select the path to the data file you want to analyze
-data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/liver lipidomics/MC00331_liver_lipidomics.csv",header=T)
+data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/liver_metabolimcs/MC00331_liver_combined metabolomics.csv",header=T)
 
 colnames(data)[1] = "Sample"
 # This line makes all of the compound variables numeric, sometimes they read in as characters
@@ -58,13 +58,11 @@ data = data[! (grepl("qc",tolower(data$Sample),fixed=T) |grepl("blank",tolower(d
 
 Molecule = colnames(data)[2:ncol(data)]
 
-# Looking for Sex, genotypes; where is the sex information?
+
+#set x[] for the position of sex and genotype here the Sample IDs are genotype_sex_uniqueID
 data$Sex =  sapply(strsplit(data$Sample,"_"), function(x) x[2])
-data$Geno =  sapply(strsplit(data$Sample,"_"), function(x) x[3])
+data$Geno =  sapply(strsplit(data$Sample,"_"), function(x) x[1])
 table(data$Geno,data$Sex)
-
-
-
 
 ```
 
@@ -144,7 +142,7 @@ if(length(colnames(miss.df[,which(missing<0.95)]))>0){
 
 ```
 
-### Removed for too much missgingness
+### Removed for too much missingness
 
 ```{r}
 #These compounds are being removed for excessive missingness
@@ -277,17 +275,26 @@ design = model.matrix(~ 0 + Geno_Sex, data= data)
 
 fit <- lmFit(t(data[,colnames(data) %in% Molecule]), design, robust = TRUE)
 
-cont2 = makeContrasts( Geno_SexkikiF  - Geno_SexkiwtF ,
-                       Geno_SexkikiF - Geno_SexwtwtF ,
-                       Geno_SexkiwtF  - Geno_SexwtwtF,
-                       
-                       Geno_SexkikiM  - Geno_SexkiwtM ,
-                       Geno_SexkikiM - Geno_SexwtwtM ,
-                       Geno_SexkiwtM  - Geno_SexwtwtM,
-                       
-                       
-                      levels = design)
+if(length(unique(data$Geno)) == 2){
+    
+  cont2 = makeContrasts( Geno_SexkikiF - Geno_SexwtwtF ,
+                         Geno_SexkikiM - Geno_SexwtwtM ,
+                        levels = design)
+  
+} else {
+  
+  cont2 = makeContrasts( Geno_SexkikiF  - Geno_SexkiwtF ,
+                         Geno_SexkikiF - Geno_SexwtwtF ,
+                         Geno_SexkiwtF  - Geno_SexwtwtF,
+                         
+                         Geno_SexkikiM  - Geno_SexkiwtM ,
+                         Geno_SexkikiM - Geno_SexwtwtM ,
+                         Geno_SexkiwtM  - Geno_SexwtwtM,
+                         
+                         
+                        levels = design)
 
+}
 set.seed(777)
 fit.cont <- contrasts.fit(fit, contrasts = cont2) 
 
@@ -305,11 +312,18 @@ tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
 ```{r, fig.height=6,fig.width=14}
 
-f.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
-               data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
-               data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
-               )
+if(length(unique(data$Geno ))>2) {
 
+  f.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
+                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
+                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+                 )
+} else {
+  
+  f.df =  data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+  
+}
+  
 
 
 f.df$Compound = rownames(f.df)
@@ -317,7 +331,7 @@ f.df$Significant = ifelse(f.df$adj.P.Val<0.05,"Significant","NS")
 f.df$label = ifelse(f.df$Significant == "NS","",f.df$Compound)
 
 ggplot(f.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = f.df[f.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = f.df[f.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("KI - WT")
 
 knitr::kable(f.df[f.df$adj.P.Val<1,],row.names = F,digits = 4)
 
@@ -329,11 +343,17 @@ knitr::kable(f.df[f.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 ```{r, fig.height=6,fig.width=14}
 
-m.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=4)),
-               data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=5)),
-               data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=6))
-               )
+if(length(unique(data$Geno ))>2) {
 
+  m.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=4)),
+                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=5)),
+                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=6))
+                 )
+} else {
+  
+  m.df =  data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+  
+}
 
 
 m.df$Compound = rownames(m.df)
@@ -378,11 +398,19 @@ design = model.matrix(~ 0 + Geno+Sex, data= data)
 fit <- lmFit(t(data[,colnames(data) %in% Molecule]), design, robust = TRUE)
 
 
-cont2 = makeContrasts( Genokiki  - Genokiwt ,
-                       Genokiki - Genowtwt ,
-                       Genokiwt  - Genowtwt,
-                      levels = design)
+if(length(unique(data$Geno)) > 2){
+  
+  cont2 = makeContrasts( Genokiki  - Genokiwt ,
+                         Genokiki - Genowtwt ,
+                         Genokiwt  - Genowtwt,
+                        levels = design)
+} else {
+  
+  cont2 = makeContrasts( Genokiki - Genowtwt ,
+                        levels = design)
 
+  
+}
 set.seed(777)
 fit.cont <- contrasts.fit(fit, contrasts = cont2) 
 
@@ -392,10 +420,18 @@ ebayesf <- eBayes(fit.cont, robust = T, trend = T)
 tops.sig = topTable(ebayesf, adjust.method = "BH", p.value = 0.05, number = Inf)
 tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
-pool.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
-               data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
-               data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
-               )
+if(length(unique(data$Geno)) > 2){
+  
+  pool.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
+                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
+                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+                 )
+} else {
+  
+  pool.df = data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+  
+  
+}
 
 pool.df$Compound = rownames(pool.df)
 pool.df$Significant = ifelse(pool.df$adj.P.Val<0.05,"Significant","NS")
