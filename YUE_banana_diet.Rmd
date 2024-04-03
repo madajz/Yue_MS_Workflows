@@ -21,6 +21,29 @@ library(pheatmap)
 library(brglm2)
 
 
+#Convenience function for plotting the volcano plot and saving the results
+plot_table_save = function(data){
+  data$Compound = rownames(data)
+  data$Significant = ifelse(data$adj.P.Val<0.05,"Significant","NS")
+  data$label = ifelse(data$Significant == "NS","",data$Compound)
+  data$Direction = ifelse(data$logFC>0,"Up regulated","Down regulated")
+  data$Direction[data$Significant=="NS"] = "NS"
+  
+  volc = ggplot(data,aes(x=logFC,y=-log10(adj.P.Val),color=Direction)) + geom_point()+
+  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = data[data$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("Up regulated"="red","Down regulated" = "green","NS = Grey")) + ggtitle(data$Contrast)
+
+  print(volc)
+  
+  ggsave(plot = volc,path=paste0(gsub("\\..*","", file)),filename = paste0(data$Contrast[1],"_volcano.png"),create.dir = T)
+
+  print("/n")
+knitr::kable(data[data$adj.P.Val<1,],row.names = F,digits = 4)
+
+  write.csv(data,file =paste0(gsub("\\..*","", file),"/",data$Contrast[1],"_results.csv") )  
+  
+}
+
+
 ```
 
 
@@ -30,8 +53,10 @@ library(brglm2)
 
 ```{r, include=F}
 
+file = "~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/liver_metabolimcs/MC00331_liver_combined metabolomics.csv"
+
 ## Please select the path to the data file you want to analyze
-data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/liver_metabolimcs/MC00331_liver_combined metabolomics.csv",header=T)
+data = read.csv(file,header=T)
 
 colnames(data)[1] = "Sample"
 # This line makes all of the compound variables numeric, sometimes they read in as characters
@@ -203,13 +228,18 @@ pc.plot = function(df){
 
 }
 
-pc.plot(data) +  plot_annotation('Pooled Sexes',theme=theme(plot.title=element_text(hjust=0.5)))
 
+pc.pool = pc.plot(data) +  plot_annotation('Pooled Sexes',theme=theme(plot.title=element_text(hjust=0.5)))
 
-pc.plot(data[data$Sex == "M",]) +  plot_annotation('Males Only',theme=theme(plot.title=element_text(hjust=0.5)))
+ggsave(pc.pool,file=paste0(gsub("\\..*","", file),"/pooled_pc.tif"))
 
-pc.plot(data[data$Sex == "F",]) +  plot_annotation('Females Only',theme=theme(plot.title=element_text(hjust=0.5)))
+pc.m = pc.plot(data[toupper(data$Sex) == "M",]) +  plot_annotation('Males Only',theme=theme(plot.title=element_text(hjust=0.5)))
 
+ggsave(pc.m,file=paste0(gsub("\\..*","", file),"/male_pc.tif"))
+
+pc.f = pc.plot(data[toupper(data$Sex) == "F",]) +  plot_annotation('Females Only',theme=theme(plot.title=element_text(hjust=0.5)))
+
+ggsave(pc.f,file=paste0(gsub("\\..*","", file),"/female_pc.tif"))
 
 ```
 
@@ -267,7 +297,7 @@ pheatmap(t(log2(data[data$Sex == "F",colnames(data) %in% Molecule])),
 ```
 
 
-## Differntial Abundance {.tabset}
+## Differential Abundance {.tabset}
 ### Sex Stratified {.tabset}
 
 ```{r, fig.height=14,fig.width=14}
@@ -319,26 +349,18 @@ tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
 if(length(unique(data$Geno ))>2) {
 
-  f.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
-                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
-                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+  f.df = rbind(data.frame(Contrast = "Female KIKI - KIWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
+                 data.frame(Contrast = "Female KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
+                 data.frame(Contrast = "Female KIWT - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
                  )
 } else {
   
-  f.df =  data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+  f.df =  data.frame(Contrast = "Female KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
   
 }
   
+plot_table_save(f.df)
 
-
-f.df$Compound = rownames(f.df)
-f.df$Significant = ifelse(f.df$adj.P.Val<0.05,"Significant","NS")
-f.df$label = ifelse(f.df$Significant == "NS","",f.df$Compound)
-
-ggplot(f.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = f.df[f.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("KI - WT")
-
-knitr::kable(f.df[f.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 
 ```
@@ -350,26 +372,17 @@ knitr::kable(f.df[f.df$adj.P.Val<1,],row.names = F,digits = 4)
 
 if(length(unique(data$Geno ))>2) {
 
-  m.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=4)),
-                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=5)),
-                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=6))
+  m.df = rbind(data.frame(Contrast = "Male KIKI - KIWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=4)),
+                 data.frame(Contrast = "Female KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=5)),
+                 data.frame(Contrast = "Female KIWT - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=6))
                  )
 } else {
   
-  m.df =  data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
+  m.df =  data.frame(Contrast = "Male KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2))
   
 }
 
-
-m.df$Compound = rownames(m.df)
-m.df$Significant = ifelse(m.df$adj.P.Val<0.05,"Significant","NS")
-m.df$label = ifelse(m.df$Significant == "NS","",m.df$Compound)
-
-ggplot(m.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = m.df[m.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
-
-knitr::kable(m.df[m.df$adj.P.Val<1,],row.names = F,digits = 4)
-
+plot_table_save(m.df)
 
 ```
 
@@ -427,26 +440,18 @@ tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
 if(length(unique(data$Geno)) > 2){
   
-  pool.df = rbind(data.frame(Contrast = "KI/KI - KI/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
-                 data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
-                 data.frame(Contrast = "KI/WT - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
+  pool.df = rbind(data.frame(Contrast = "Pooled KIKI - KIWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1)),
+                 data.frame(Contrast = "Pooled KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=2)),
+                 data.frame(Contrast = "Pooled KIWT - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=3))
                  )
 } else {
   
-  pool.df = data.frame(Contrast = "KI/KI - WT/WT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
+  pool.df = data.frame(Contrast = "Pooled KIKI - WTWT", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
   
   
 }
 
-pool.df$Compound = rownames(pool.df)
-pool.df$Significant = ifelse(pool.df$adj.P.Val<0.05,"Significant","NS")
-pool.df$label = ifelse(pool.df$Significant == "NS","",pool.df$Compound)
-
-ggplot(pool.df,aes(x=logFC,y=-log10(P.Value),color=Significant)) + geom_point()+
-  theme_bw(16) +facet_wrap(~Contrast)+geom_text_repel(data = pool.df[pool.df$label!= "",] ,aes(label=Compound))+scale_color_manual(values = c("NS"="black","Significant" = "red")) + ggtitle("HFD KI - WT")
-
-knitr::kable(pool.df[pool.df$adj.P.Val<1,],row.names = F,digits = 4)
-
+plot_table_save(pool.df)
 
 
 

@@ -36,8 +36,9 @@ plot_table_save = function(data){
   print(volc)
   
   ggsave(plot = volc,path=paste0(gsub("\\..*","", file)),filename = paste0(data$Contrast[1],"_volcano.png"),create.dir = T)
+  print("\n")
 
-print(knitr::kable(data[data$adj.P.Val<1,],row.names = F,digits = 4))
+knitr::kable(data[data$adj.P.Val<1,],row.names = F,digits = 4)
 
   write.csv(data,file =paste0(gsub("\\..*","", file),"/",data$Contrast[1],"_results.csv") )  
   
@@ -107,7 +108,7 @@ data$Diet = gsub(".*-","",data$Geno_Diet)
 data$ID = gsub("_.*","",data$Sample)
 
 
-data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
+# data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
 
 data = left_join(data,meta,by="ID")
 
