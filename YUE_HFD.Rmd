@@ -34,6 +34,7 @@ library(readxl)
 ## Please select the path to the data file you want to analyze
 data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/MC00470_Merged_PoolSize_kidney_lipids (2606187b-313e-4b85-bf8a-eabb4f54cc05).csv",header=T)
 
+
 ## Update the file path for the Excel file with Sex info, this will need to  be merged into these files since the MS files don't seem to have sex info
 meta = subset(readxl::read_excel("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/sample submittion_20231030_Banana_HFD aged.xlsx",sheet=3,skip=1),select=c('Core ID','Condition 3'))
 colnames(meta) = c("ID","Sex")
@@ -42,7 +43,7 @@ meta$Sex = toupper(meta$Sex)
 colnames(data)[1] = "Sample"
 
 # This line makes all of the compound variables numeric, sometimes they read in as characters
-data[,2:ncol(data)] <- sapply( data[,2:ncol(data)], as.numeric )
+data[,2:ncol(data)] <- sapply( data[,2:ncol(data)], as.numeric)
 
 
 if(any(grepl("blank",tolower(data$Sample),fixed=T))){
@@ -70,6 +71,9 @@ data$Geno_Diet =  sapply(strsplit(data$Sample,"_"), function(x) x[2])
 data$Geno = tolower(gsub("-.*","",data$Geno_Diet))
 data$Diet = gsub(".*-","",data$Geno_Diet)
 data$ID = gsub("_.*","",data$Sample)
+
+data$ID = paste0("S",as.numeric(substr(data$ID,2,10)))
+
 
 data = left_join(data,meta,by="ID")
 
