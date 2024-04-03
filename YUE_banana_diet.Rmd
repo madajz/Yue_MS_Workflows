@@ -58,10 +58,15 @@ data = data[! (grepl("qc",tolower(data$Sample),fixed=T) |grepl("blank",tolower(d
 
 Molecule = colnames(data)[2:ncol(data)]
 
+sex.ix = which(tolower(strsplit(data$Sample,"_")[[1]]) %in% c("f","m"))
+
+geno.ix = which(tolower(strsplit(data$Sample,"_")[[1]]) %in% c("kiki","wtwt","kiwt","wtki"))
 
 #set x[] for the position of sex and genotype here the Sample IDs are genotype_sex_uniqueID
-data$Sex =  sapply(strsplit(data$Sample,"_"), function(x) x[2])
-data$Geno =  sapply(strsplit(data$Sample,"_"), function(x) x[1])
+data$Sex =  sapply(strsplit(data$Sample,"_"), function(x) x[sex.ix])
+data$Geno =  sapply(strsplit(data$Sample,"_"), function(x) x[geno.ix])
+
+
 table(data$Geno,data$Sex)
 
 ```

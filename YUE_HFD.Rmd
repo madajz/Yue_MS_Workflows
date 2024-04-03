@@ -32,7 +32,7 @@ library(readxl)
 ```{r, include=F}
 
 ## Please select the path to the data file you want to analyze
-data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/230907_MC00422_profiling_PlasmaLipidomics/2_tables/MC00422_Merged_PoolSize.csv",header=T)
+data = read.csv("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/MC00470_Merged_PoolSize_kidney_lipids (2606187b-313e-4b85-bf8a-eabb4f54cc05).csv",header=T)
 
 ## Update the file path for the Excel file with Sex info, this will need to  be merged into these files since the MS files don't seem to have sex info
 meta = subset(readxl::read_excel("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/sample submittion_20231030_Banana_HFD aged.xlsx",sheet=3,skip=1),select=c('Core ID','Condition 3'))
@@ -53,12 +53,13 @@ if(any(grepl("blank",tolower(data$Sample),fixed=T))){
   #Make all missing and -Inf values 0 for the purposes of easily checking for > 3 fold difference
   blank[which(apply(blank,2,function(x) sum(is.finite(x)))<1)] = 0
   
-  #Substract actual valus from blank values, both on the log2 scale
+  #Subtract actual values from blank values, both on the log2 scale
   diff = as.data.frame(t(log2(t(data[,2:ncol(data)])) - as.vector(t(blank))))
   
   #Any difference that is less than 3 fold, make missing
   data[,2:ncol(data)][which(diff < log2(3),arr.ind=T)] = NA
 }
+
 #remove QC and process blanks
 data = data[! (grepl("qc",tolower(data$Sample),fixed=T) |grepl("blank",tolower(data$Sample),fixed=T)) , ]
 
@@ -166,6 +167,7 @@ if(length(colnames(miss.df[,which(missing<0.95)]))>0){
 ### Removed for too much missgingness
 
 ```{r}
+
 #These compounds are being removed for excessive missingness
 knitr::kable(names(missing[missing<0.3]))
 
