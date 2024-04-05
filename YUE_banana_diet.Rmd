@@ -398,6 +398,9 @@ plot_table_save(m.df)
 ggplot( plot.df,aes(x = Geno,y=value,color=Sex)) +geom_boxplot(position = position_dodge()) +
   facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title)
 
+  ggsave(path=paste0(gsub("\\..*","", file)),filename = paste0("startified","_top_boxplot.png"),create.dir = T)
+  
+
 ```
 
 
@@ -469,6 +472,9 @@ plot_table_save(pool.df)
 
 ggplot( plot.df,aes(x = Geno,y=value)) +geom_boxplot(position = position_dodge()) +
   facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title)
+
+  ggsave(path=paste0(gsub("\\..*","", file)),filename = paste0("pooled","_top_boxplot.png"),create.dir = T)
+  
 
 ```
 

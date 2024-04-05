@@ -45,13 +45,15 @@ knitr::kable(data[data$adj.P.Val<1,],row.names = F,digits = 4)
 }
 
 #Plots top 20 boxplots
-plot_differences = function(df){
+plot_differences = function(df,level="Pooled"){
   plot.df = reshape2::melt(df[,colnames(df) %in% c("Geno","Diet",rownames(tops.all)[1:20])],id.vars=c("Geno","Diet"))
   title = "Boxplots of Compounds with largest differences"
 
   print(ggplot( plot.df,aes(x = Geno,y=value,color=Diet)) +geom_boxplot(position = position_dodge()) +
     facet_wrap(~variable,scales="free_y")+theme_bw(16)+scale_color_aaas()+ggtitle(title))
 
+  ggsave(path=paste0(gsub("\\..*","", file)),filename = paste0(level,"_top_boxplot.png"),create.dir = T)
+  
 }
  
 
@@ -108,7 +110,7 @@ data$Diet = gsub(".*-","",data$Geno_Diet)
 data$ID = gsub("_.*","",data$Sample)
 
 
-# data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
+data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
 
 data = left_join(data,meta,by="ID")
 
@@ -415,7 +417,7 @@ plot_table_save(wthl.df)
 ```{r, fig.height=12,fig.width=16}
 
  
-plot_differences(data)
+plot_differences(data,"Pooled")
 
 
 ```
@@ -512,7 +514,7 @@ plot_table_save(wthl.df.m)
 
 ```{r, fig.height=12,fig.width=16}
 
-plot_differences(data[data$Sex == "M",]) 
+plot_differences(data[data$Sex == "M",],level="Male") 
 ```
 
 ### Females {.tabset}
@@ -547,7 +549,7 @@ tops.all = topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf)
 
 hfd.df.f = data.frame(Contrast = "Female KI HFD vs WT HFD", topTable(ebayesf, adjust.method = "BH", p.value = 1, number = Inf,coef=1))
 
-plot_table_save(hfd.df.m)
+plot_table_save(hfd.df.f)
 
 ```
 
@@ -600,7 +602,7 @@ plot_table_save(wthl.df.f)
 
 ```{r, fig.height=12,fig.width=16}
 
-plot_differences(data[data$Sex == "F",]) 
+plot_differences(data[data$Sex == "F",],level="Female") 
 
 
 ```
