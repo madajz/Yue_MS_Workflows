@@ -110,7 +110,7 @@ data$Diet = gsub(".*-","",data$Geno_Diet)
 data$ID = gsub("_.*","",data$Sample)
 
 
-data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
+# data$ID = paste0("S",as.numeric(substr(data$ID,2,15)))
 
 data = left_join(data,meta,by="ID")
 
@@ -210,10 +210,10 @@ if(length(colnames(miss.df[,which(missing<0.95)]))>0){
 ```{r}
 
 #These compounds are being removed for excessive missingness
-knitr::kable(names(missing[missing<0.3]))
+knitr::kable(names(missing[missing<0.7]))
 
 #drop heavily missing data (>30%)
-data = data[, ! colnames(data) %in% names(missing[missing<0.3])]
+data = data[, ! colnames(data) %in% names(missing[missing<0.7])]
 
 ```
 
@@ -282,7 +282,7 @@ ggsave(pc.f,file=paste0(gsub("\\..*","", file),"/female_pc.tif"))
 anno = data.frame(Genotype = data$Geno, data$Diet,Sex = data$Sex)
 rownames(anno) = data$Sample
 rownames(data) = data$Sample
-pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
+pheatmap(t((data[,colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))
@@ -298,7 +298,7 @@ pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
 anno = data.frame(Genotype = data[data$Sex == "M",]$Geno,Diet = data[data$Sex == "M",]$Diet)
 rownames(anno) = data[data$Sex == "M",]$Sample
 
-pheatmap(t(log2(data[data$Sex == "M",colnames(data) %in% Molecule])),
+pheatmap(t((data[data$Sex == "M",colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))
@@ -316,7 +316,7 @@ pheatmap(t(log2(data[data$Sex == "M",colnames(data) %in% Molecule])),
 anno = data.frame(Genotype = data[data$Sex == "F",]$Geno,Diet = data[data$Sex == "F",]$Diet)
 rownames(anno) = data[data$Sex == "F",]$Sample
 
-pheatmap(t(log2(data[data$Sex == "F",colnames(data) %in% Molecule])),
+pheatmap(t((data[data$Sex == "F",colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))

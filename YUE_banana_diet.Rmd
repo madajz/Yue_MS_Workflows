@@ -176,10 +176,10 @@ if(length(colnames(miss.df[,which(missing<0.95)]))>0){
 
 ```{r}
 #These compounds are being removed for excessive missingness
-knitr::kable(names(missing[missing<0.3]))
+knitr::kable(names(missing[missing<0.7]))
 
 #drop heavily missing data (>30%)
-data = data[, ! colnames(data) %in% names(missing[missing<0.3])]
+data = data[, ! colnames(data) %in% names(missing[missing<0.7])]
 
 ```
 
@@ -253,7 +253,7 @@ ggsave(pc.f,file=paste0(gsub("\\..*","", file),"/female_pc.tif"))
 anno = data.frame(Genotype = data$Geno,Sex = data$Sex)
 rownames(anno) = data$Sample
 rownames(data) = data$Sample
-pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
+pheatmap(t((data[,colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))
@@ -269,7 +269,7 @@ pheatmap(t(log2(data[,colnames(data) %in% Molecule])),
 anno = data.frame(Genotype = data[data$Sex == "M",]$Geno,Sex = data[data$Sex == "M",]$Sex)
 rownames(anno) = data[data$Sex == "M",]$Sample
 
-pheatmap(t(log2(data[data$Sex == "M",colnames(data) %in% Molecule])),
+pheatmap(t((data[data$Sex == "M",colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))
@@ -287,7 +287,7 @@ pheatmap(t(log2(data[data$Sex == "M",colnames(data) %in% Molecule])),
 anno = data.frame(Genotype = data[data$Sex == "F",]$Geno,Sex = data[data$Sex == "F",]$Sex)
 rownames(anno) = data[data$Sex == "F",]$Sample
 
-pheatmap(t(log2(data[data$Sex == "F",colnames(data) %in% Molecule])),
+pheatmap(t((data[data$Sex == "F",colnames(data) %in% Molecule])),
          annotation_col = anno,
          scale="row",
          color=colorRampPalette(c("blue","white","red"))(100))
