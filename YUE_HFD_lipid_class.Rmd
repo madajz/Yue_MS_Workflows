@@ -67,7 +67,7 @@ plot_differences = function(df,level="Pooled"){
 
 ```{r, include=F}
 
-file = "~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/20240118_MC00470_profiling_KidneyLipids/3_tables/MC00470_Merged_PoolSize.csv"
+file = "~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/20240118_MC00470_profiling_KidneyLipids/3_tables/MC00470_Merged_PoolSize_liver_lipids (1).csv"
 
 ## Please select the path to the data file you want to analyze
 data = read.csv(file,header=T)
@@ -75,7 +75,7 @@ data = read.csv(file,header=T)
 ## Update the file path for the Excel file with Sex info, this will need to  be merged into these files since the MS files don't seem to have sex info
 meta = subset(readxl::read_excel("~/bbc-secondary/research/MOOD_yue_MS_template_VBCS1110/sample submittion_20231030_Banana_HFD aged.xlsx",sheet=3,skip=1),select=c('Core ID','Condition 3'))
 colnames(meta) = c("ID","Sex")
-meta$ID[nchar(as.numeric(meta$ID)) == 2] = paste0("0",meta$ID[nchar(as.numeric(meta$ID)) == 2])
+# meta$ID[nchar(as.numeric(meta$ID)) == 2] = paste0("0",meta$ID[nchar(as.numeric(meta$ID)) == 2])
 meta$ID = paste0("S",meta$ID)
 
 meta$Sex = toupper(meta$Sex)
